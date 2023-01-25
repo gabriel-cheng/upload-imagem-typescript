@@ -1,7 +1,28 @@
 import { Request, Response } from "express";
 import Picture from "../model/Picture.model";
+import fs from "fs";
 
 export default {
+    deleteImage: async(req: Request, res: Response) => {
+        const id = req.params.id;
+        
+        try {
+            const imageFound = await Picture.findById(id);
+            
+            if(!imageFound) {
+                return res.status(404).json({message: "Imagem não encontrada!"});
+            }
+
+            fs.unlinkSync(imageFound.src);
+
+            await imageFound.remove();
+
+            return res.status(200).json({message: "Imagem deletada com sucesso!"});
+        } catch(err) {
+            console.log({delete_picture_error: err});
+            res.status(500).json({message: "500 - Internal server error"});
+        }
+    },
     saveImage: async(req: Request, res: Response) => {
         const { name } = req.body;
         const file = req.file;
